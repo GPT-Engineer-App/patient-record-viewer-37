@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Input, Button, HStack, VStack, Box, Text } from "@chakra-ui/react";
 
-const PatientSearch = () => {
+const PatientSearch = (props) => {
   const [searchTerm, setSearchTerm] = useState("");
 
   const mockPatients = ["John Doe", "Jane Smith", "Emily Johnson", "Michael Brown"];
@@ -42,8 +42,18 @@ const PatientSearch = () => {
               bg="gray.100"
               cursor="pointer"
               onClick={() => {
+                const selectedPatientData = mockPatients.find((p) => p === suggestion);
                 setSearchTerm(suggestion);
                 setSuggestions([]);
+                if (selectedPatientData) {
+                  const patientData = {
+                    name: selectedPatientData,
+                    dob: "1990-01-01",
+                    gender: "Unknown",
+                    ssn: "000-00-0000",
+                  };
+                  props.onPatientSelect(patientData);
+                }
               }}
             >
               <Text>{suggestion}</Text>

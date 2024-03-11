@@ -23,9 +23,13 @@ const Index = () => {
     setMedicalRecords(fetchedMedicalRecords);
   }, []);
 
+  const handlePatientSelect = (patientData) => {
+    setPatient(patientData);
+  };
+
   return (
     <VStack spacing={8}>
-      <PatientSearch />
+      <PatientSearch onPatientSelect={handlePatientSelect} />
       {patient && <PatientInfo patient={patient} />}
       {medicalRecords && <PatientTimeline medicalRecords={medicalRecords} />}
     </VStack>
