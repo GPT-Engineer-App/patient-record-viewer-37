@@ -30,7 +30,7 @@ const PatientSearch = () => {
           }}
         />
         <Button colorScheme="blue" type="submit">
-          Search
+          Validate
         </Button>
       </HStack>
       {suggestions.length > 0 && (
