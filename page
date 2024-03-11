@@ -1,0 +1,212 @@
+import React, { useState, useEffect } from "react";
+import { Box, Button, Container, Heading, Input, Stack, Text, VStack, HStack, useToast, Spinner, List, ListItem, ListIcon, Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, useDisclosure, Image } from "@chakra-ui/react";
+import { FaUserMd, FaQrcode, FaSignInAlt } from "react-icons/fa";
+import QRCode from "qrcode.react";
+
+const Index = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [patients, setPatients] = useState([]);
+  const [selectedPatientId, setSelectedPatientId] = useState(null);
+  const [patientRecords, setPatientRecords] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const toast = useToast();
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [authToken, setAuthToken] = useState("");
+
+  // Assume the API base URL is set as an environment variable
+  const API_BASE_URL = "https://backengine-gpew.fly.dev";
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchPatients();
+    }
+  }, [isLoggedIn]);
+
+  const handleLogin = async (email, password) => {
+    setIsLoading(true);
+    try {
+      // Call the login API
+      const response = await fetch(`${API_BASE_URL}/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await response.json();
+
+      if (response.status === 200) {
+        setIsLoggedIn(true);
+        setAuthToken(data.accessToken);
+        toast({
+          title: "Login successful",
+          status: "success",
+          duration: 2000,
+          isClosable: true,
+        });
+      } else {
+        toast({
+          title: "Login failed",
+          description: data.error,
+          status: "error",
+          duration: 2000,
+          isClosable: true,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Login error",
+        description: error.message,
+        status: "error",
+        duration: 2000,
+        isClosable: true,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchPatients = async () => {
+    setIsLoading(true);
+    try {
+      // Call the patients API
+      const response = await fetch(`${API_BASE_URL}/patients`, {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+      const data = await response.json();
+
+      if (response.status === 200) {
+        setPatients(data);
+      } else {
+        toast({
+          title: "Failed to fetch patients",
+          description: "Unable to retrieve patient data.",
+          status: "error",
+          duration: 2000,
+          isClosable: true,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Fetching error",
+        description: error.message,
+        status: "error",
+        duration: 2000,
+        isClosable: true,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const selectPatient = (patientId) => {
+    setSelectedPatientId(patientId);
+    fetchHealthRecords(patientId);
+  };
+
+  const fetchHealthRecords = async (patientId) => {
+    setIsLoading(true);
+    try {
+      // Call the health records API
+      const response = await fetch(`${API_BASE_URL}/health-records`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({ patient_id: patientId }),
+      });
+      const data = await response.json();
+
+      if (response.status === 200) {
+        setPatientRecords(data);
+      } else {
+        toast({
+          title: "Failed to fetch records",
+          description: "Unable to retrieve health records.",
+          status: "error",
+          duration: 2000,
+          isClosable: true,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Fetching error",
+        description: error.message,
+        status: "error",
+        duration: 2000,
+        isClosable: true,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const generateQRCode = (recordId) => {
+    // Generate QR code based on the health record ID
+    // Assuming there's a backend service to create a sharable link
+    const sharableLink = `${API_BASE_URL}/share-record/${recordId}`;
+    return <QRCode value={sharableLink} />;
+  };
+
+  if (!isLoggedIn) {
+    return (
+      <Container>
+        <VStack spacing={4} align="stretch">
+          <Heading as="h1" size="lg">
+            Patient Health Records
+          </Heading>
+          <Input placeholder="Email" />
+          <Input placeholder="Password" type="password" />
+          <Button leftIcon={<FaSignInAlt />} colorScheme="blue" onClick={() => handleLogin("test@example.com", "password")} isLoading={isLoading}>
+            Login
+          </Button>
+        </VStack>
+      </Container>
+    );
+  }
+
+  return (
+    <Container>
+      <VStack spacing={4} align="stretch">
+        <Heading as="h1" size="lg">
+          Patient Health Records
+        </Heading>
+        {isLoading ? (
+          <Spinner />
+        ) : (
+          <List spacing={3}>
+            {patients.map((patient) => (
+              <ListItem key={patient.id} onClick={() => selectPatient(patient.id)}>
+                <HStack>
+                  <ListIcon as={FaUserMd} />
+                  <Text>{patient.name}</Text>
+                  <Button onClick={onOpen} leftIcon={<FaQrcode />} colorScheme="teal" variant="outline">
+                    Share
+                  </Button>
+                </HStack>
+              </ListItem>
+            ))}
+          </List>
+        )}
+        <Modal isOpen={isOpen} onClose={onClose}>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Patient Health Record QR Code</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>{selectedPatientId && generateQRCode(selectedPatientId)}</ModalBody>
+            <ModalFooter>
+              <Button colorScheme="blue" mr={3} onClick={onClose}>
+                Close
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+      </VStack>
+    </Container>
+  );
+};
+
+export default Index;
