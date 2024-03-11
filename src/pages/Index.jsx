@@ -1,5 +1,6 @@
 import React from "react";
 import { VStack } from "@chakra-ui/react";
+import PatientSearch from "../components/PatientSearch";
 import PatientInfo from "../components/PatientInfo";
 import PatientTimeline from "../components/PatientTimeline";
 
@@ -24,6 +25,7 @@ const Index = () => {
 
   return (
     <VStack spacing={8}>
+      <PatientSearch />
       {patient && <PatientInfo patient={patient} />}
       {medicalRecords && <PatientTimeline medicalRecords={medicalRecords} />}
     </VStack>
