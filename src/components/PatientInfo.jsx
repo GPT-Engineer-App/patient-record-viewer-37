@@ -2,14 +2,7 @@ import React from "react";
 import { Box, VStack, HStack, Text, Avatar } from "@chakra-ui/react";
 import { FaUserAlt, FaBirthdayCake, FaTransgender, FaIdCard } from "react-icons/fa";
 
-const PatientInfo = () => {
-  const patient = {
-    name: "John Doe",
-    dob: "1980-01-01",
-    gender: "Male",
-    ssn: "123-45-6789",
-  };
-
+const PatientInfo = ({ patient }) => {
   return (
     <Box p={5} shadow="md" borderWidth="1px">
       <VStack spacing={4} align="stretch">

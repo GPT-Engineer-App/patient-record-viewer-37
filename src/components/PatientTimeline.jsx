@@ -1,6 +1,6 @@
 import React from "react";
 
-const PatientTimeline = () => {
+const PatientTimeline = ({ medicalRecords }) => {
   return <div>Timeline component goes here</div>;
 };
 
